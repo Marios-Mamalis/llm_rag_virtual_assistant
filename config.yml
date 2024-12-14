@@ -1,0 +1,9 @@
+OPENAI:
+    LLM:
+        MODEL_NAME: "gpt-4o"
+        MODEL_VERSION: "2024-05-13"
+        DEPLOYMENT_NAME: "gpt4o"
+    EMBED:
+        MODEL_NAME: "text-embedding-ada-002"
+        MODEL_VERSION: 2
+        DEPLOYMENT_NAME: "embedding-ada"
