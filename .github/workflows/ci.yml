@@ -42,12 +42,12 @@ jobs:
 
     - name: Lint
       run: |
-        flake8 src/ || true
+        flake8 src/
       continue-on-error: true
 
     - name: Type check
       run: |
-        mypy src/ || true
+        mypy src/
       continue-on-error: true
 
     - name: Test
