@@ -1,4 +1,11 @@
 import typing
+import os
+import logging
+
+
+os.makedirs('../logs', exist_ok=True)
+logging.basicConfig(filename='../logs/llm_app.log', level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def retrieval_func_mock(input_text: str) -> typing.List[str]:
