@@ -1,11 +1,14 @@
 import string
 import logging
-import os
+import logging.config as lcfg
+import yaml
 import typing
 
-os.makedirs('../logs', exist_ok=True)
-logging.basicConfig(filename='../logs/llm_app.log', level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+with open('log_config.yml', 'rt') as f:
+    config = yaml.safe_load(f.read())
+    lcfg.dictConfig(config)
+logger = logging.getLogger('mainlogger')
 
 
 def fill_rag_prompt(string_template: string.Template, context_pieces: typing.List[str], user_query: str) -> str:

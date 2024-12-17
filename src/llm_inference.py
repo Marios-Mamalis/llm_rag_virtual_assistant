@@ -2,13 +2,15 @@ from openai import AzureOpenAI
 from openai._exceptions import RateLimitError
 import typing
 import logging
-import os
+import logging.config as lcfg
+import yaml
 from retrying import retry
 
 
-os.makedirs('../logs', exist_ok=True)
-logging.basicConfig(filename='../logs/llm_app.log', level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+with open('log_config.yml', 'rt') as f:
+    config = yaml.safe_load(f.read())
+    lcfg.dictConfig(config)
+logger = logging.getLogger('mainlogger')
 
 
 @retry(stop_max_attempt_number=5, wait_exponential_multiplier=1000,

@@ -1,10 +1,14 @@
 import typing
-import os
 import logging
+import logging.config as lcfg
+import yaml
 
-os.makedirs('../logs', exist_ok=True)
-logging.basicConfig(filename='../logs/llm_app.log', level=logging.DEBUG,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+with open('log_config.yml', 'rt') as f:
+    config = yaml.safe_load(f.read())
+    lcfg.dictConfig(config)
+logger = logging.getLogger('mainlogger')
+
 
 def retrieval_func(input_text: str) -> typing.List[str]:
     """
