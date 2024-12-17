@@ -2,6 +2,7 @@ import pytest
 import string
 from src.prompts import fill_rag_prompt
 
+
 class TestFillRagPrompt:
     def test_fill_rag_prompt_valid(self):
         template = string.Template("Context: $context_pieces\nQuery: $user_query")

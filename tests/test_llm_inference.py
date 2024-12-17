@@ -10,7 +10,6 @@ class TestOpenaiInference:
         self.endpoint = "endpoint"
         self.deployment = "deployment"
 
-
     @patch("src.llm_inference.AzureOpenAI")
     def test_openai_inference_valid(self, MockAzureOpenAI):
         self.set_nontest_vals()
@@ -30,7 +29,6 @@ class TestOpenaiInference:
         assert len(result) == 4  # assert correct number of dialogue truns
         assert result[-1]['role'] == 'assistant'  # assert that the last dialogue belongst to the assistant
         assert result[-1]['content'] == "Response"  # assert that the response was correctly inserted
-
 
     @patch("src.llm_inference.AzureOpenAI")
     def test_invalid_conversation_history(self, MockAzureOpenAI):
