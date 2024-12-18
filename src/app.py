@@ -10,7 +10,7 @@ import sys
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from src.prompts import RAG_CONTEXT_INFERENCE, fill_rag_prompt
-from src.retrieval import retrieval_func
+from src.retrieval import Vectorstore
 from src.llm_inference import openai_inference
 
 
@@ -22,7 +22,6 @@ logger = logging.getLogger('mainlogger')
 
 app = FastAPI()
 app.mount('/static', StaticFiles(directory='static'), name='static')
-config = {}
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -51,16 +50,24 @@ def read_env_variables():
     dotenv.load_dotenv()  # if local .env can be used
 
     try:
-        config['openai_llm_api_key'] = os.environ['AZURE_OPENAI_API_KEY']
+        app.openai_api_key = os.environ['AZURE_OPENAI_API_KEY']
 
-        config['openai_llm_endpoint'] = model_config['OPENAI']['LLM']['ENDPOINT']
-        config['openai_llm_deployment'] = model_config['OPENAI']['LLM']['DEPLOYMENT_NAME']
-        config['openai_llm_api_version'] = model_config['OPENAI']['LLM']['API_VERSION']
+        app.openai_endpoint = model_config['OPENAI']['ENDPOINT']
+        app.openai_api_version = model_config['OPENAI']['API_VERSION']
 
-        config['openai_embed_deployment'] = model_config['OPENAI']['EMBED']['DEPLOYMENT_NAME']
+        app.openai_llm_deployment = model_config['OPENAI']['LLM']['DEPLOYMENT_NAME']
+        app.openai_embed_deployment = model_config['OPENAI']['EMBED']['DEPLOYMENT_NAME']
     except KeyError as e:
         logging.error(f'Missing configuration: {e}. Exiting.')
         sys.exit(1)
+
+    # Instantiate the vectorstore
+    app.rag_store = Vectorstore(app.openai_api_key, app.openai_api_version, app.openai_endpoint,
+                                app.openai_embed_deployment)
+
+    # Seed it
+    app.rag_store.add_document("Cat kitty.")
+    app.rag_store.add_document("Dog puppy.")
 
 
 class UserQuery(BaseModel):
@@ -76,13 +83,12 @@ def rag_inference(user_query: UserQuery) -> typing.Dict[str, str]:
     """
 
     user_query = user_query.query_text
-    context_pieces = retrieval_func(user_query)
+    context_pieces = app.rag_store.retrieve_similar(user_query, top_k=1)
     input_text = fill_rag_prompt(context_pieces=context_pieces, user_query=user_query,
                                  string_template=RAG_CONTEXT_INFERENCE)
     assistant_response = openai_inference(
-        conversation_history=[], user_query=input_text,
-        api_key=config['openai_llm_api_key'], api_version=config['openai_llm_api_version'],
-        endpoint=config['openai_llm_endpoint'], deployment=config['openai_llm_deployment']
+        conversation_history=[], user_query=input_text, api_key=app.openai_api_key, api_version=app.openai_api_version,
+        endpoint=app.openai_endpoint, deployment=app.openai_llm_deployment
     )
 
     return {'response': assistant_response[-1]['content']}

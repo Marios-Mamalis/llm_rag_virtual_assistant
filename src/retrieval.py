@@ -1,7 +1,9 @@
-import typing
 import logging
 import logging.config as lcfg
 import yaml
+import numpy as np
+from openai import AzureOpenAI
+import typing
 
 
 with open('log_config.yml', 'rt') as f:
@@ -10,14 +12,51 @@ with open('log_config.yml', 'rt') as f:
 logger = logging.getLogger('mainlogger')
 
 
-def retrieval_func(input_text: str) -> typing.List[str]:
+def openai_azure_get_embeddings(input_string: str, api_key: str, api_version: str, endpoint: str,
+                                deployment_name: str) -> np.array:
     """
-    !Mock function.
-
-    Based on an input user query, it retrieves semantically similar context chunks and returns them.
-
-    :param input_text: The user's input text.
-    :return: A list that of semantically similar to the user query, text chunks.
+    Calculates embeddings for a given string with AzureOpenAI embedding models.
+    :param input_string: The given string.
+    :param api_key: The api_key configuration
+    :param api_version: The api_version configuration
+    :param endpoint: The endpoint configuration
+    :param deployment_name: The deployment_name configuration
+    :return: A numpy array of length equal to the size of the output of the embedding model.
     """
 
-    return [f'Placeholder relevant context piece #{i}, ignore.' for i in range(5)]
+    client = AzureOpenAI(api_key=api_key, api_version=api_version, azure_endpoint=endpoint)
+    response = client.embeddings.create(input=input_string, model=deployment_name)
+
+    return np.array(response.data[0].embedding)
+
+
+class Vectorstore:
+    def __init__(self, api_key: str, api_version: str, endpoint: str, deployment_name: str):
+        self.api_key = api_key
+        self.api_version = api_version
+        self.endpoint = endpoint
+        self.deployment_name = deployment_name
+
+        self.embeddings = None
+        self.texts = []
+
+    def add_document(self, input_string: str):
+        embedding = openai_azure_get_embeddings(input_string, self.api_key, self.api_version, self.endpoint,
+                                                self.deployment_name)
+
+        if not isinstance(self.embeddings, np.ndarray):
+            self.embeddings = np.empty((0, len(embedding)), dtype=np.float32)
+
+        self.embeddings = np.vstack([self.embeddings, embedding])
+        self.texts.append(input_string)
+
+    def retrieve_similar(self, query: str, top_k: int = 3) -> typing.List[str]:
+        """Based on cosine similarity matching"""
+        query_embedding = openai_azure_get_embeddings(query, self.api_key, self.api_version, self.endpoint,
+                                                      self.deployment_name)
+        query_part = query_embedding / np.linalg.norm(query_embedding)
+        stored_embeddings_part = self.embeddings / np.linalg.norm(self.embeddings, axis=1, keepdims=True)
+        similarities = np.dot(stored_embeddings_part, query_part)
+        top_k_indices = np.argsort(similarities)[-top_k:][::-1]
+
+        return [self.texts[i] for i in top_k_indices]
