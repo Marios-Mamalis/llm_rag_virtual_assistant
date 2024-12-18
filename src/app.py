@@ -7,6 +7,8 @@ import logging
 import logging.config as lcfg
 import os
 import sys
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from src.prompts import RAG_CONTEXT_INFERENCE, fill_rag_prompt
 from src.retrieval import retrieval_func
 from src.llm_inference import openai_inference
@@ -19,7 +21,14 @@ logger = logging.getLogger('mainlogger')
 
 
 app = FastAPI()
+app.mount('/static', StaticFiles(directory='static'), name='static')
 config = {}
+
+
+@app.get("/", response_class=HTMLResponse)
+async def userpage():
+    with open("static/index.html", "r") as file:
+        return HTMLResponse(content=file.read())
 
 
 @app.get("/health")
@@ -63,8 +72,9 @@ def rag_inference(user_query: UserQuery) -> typing.Dict[str, str]:
     """
     Given a user query, performs RAG inference to answer it.
     :param user_query: The user's query as a string.
-    :return: The system's response in the format of {'assistant': <assistant response>}
+    :return: The system's response in the format of {'response': <assistant response>}
     """
+
     user_query = user_query.query_text
     context_pieces = retrieval_func(user_query)
     input_text = fill_rag_prompt(context_pieces=context_pieces, user_query=user_query,
@@ -75,4 +85,4 @@ def rag_inference(user_query: UserQuery) -> typing.Dict[str, str]:
         endpoint=config['openai_llm_endpoint'], deployment=config['openai_llm_deployment']
     )
 
-    return {'assistant': assistant_response[-1]['content']}
+    return {'response': assistant_response[-1]['content']}
