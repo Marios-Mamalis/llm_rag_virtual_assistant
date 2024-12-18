@@ -1,6 +1,7 @@
 const frmChatForm = document.querySelector(".frmChat-inputarea");
 const frmChatInput = document.querySelector(".frmChat-input");
 const frmChatChat = document.querySelector(".frmChat-chat");
+const frmChatSendBtn = document.querySelector(".frmChat-send-btn");
 
 const BOT_NAME = "Bot";
 const PERSON_NAME = "User";
@@ -15,6 +16,8 @@ frmChatForm.addEventListener("submit", (event) => {
 
   appendMessage(PERSON_NAME, "user", "right", msgText);
   frmChatInput.value = "";
+
+  frmChatSendBtn.disabled = true;
 
   botResponse(msgText);
 });

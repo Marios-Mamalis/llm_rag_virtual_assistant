@@ -145,6 +145,10 @@
   .frmChat-send-btn:hover {
     background: #c52a1a;
   }
+  .frmChat-send-btn:disabled {
+    color: #a0a0a0;
+    background: #e0e0e0;
+  }
   
   .frmChat-chat {
     background-color: #fcfcfe;
