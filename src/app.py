@@ -9,7 +9,7 @@ import os
 import sys
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from src.prompts import RAG_CONTEXT_INFERENCE, fill_rag_prompt
+from src.prompts import RAG_SYSTEM_PROMPT, fill_rag_system_prompt
 from src.retrieval import Vectorstore
 from src.llm_inference import openai_inference
 
@@ -111,11 +111,15 @@ def rag_inference(user_query: UserQuery) -> typing.Dict[str, str]:
 
     user_query = user_query.query_text
     context_pieces = app.rag_store.retrieve_similar(user_query, top_k=1)
-    input_text = fill_rag_prompt(context_pieces=context_pieces, user_query=user_query,
-                                 string_template=RAG_CONTEXT_INFERENCE)
+
+    # inject context into system prompt
+    system_context_prompt = fill_rag_system_prompt(context_pieces=context_pieces, string_template=RAG_SYSTEM_PROMPT)
+
     assistant_response = openai_inference(
-        conversation_history=[], user_query=input_text, api_key=app.openai_api_key, api_version=app.openai_api_version,
-        endpoint=app.openai_endpoint, deployment=app.openai_llm_deployment
+        conversation_history=[
+            {'role': 'system', 'content': system_context_prompt}
+        ], user_query=user_query, api_key=app.openai_api_key,
+        api_version=app.openai_api_version, endpoint=app.openai_endpoint, deployment=app.openai_llm_deployment
     )
 
     logger.info(f'Context piece used:\n\n{" ".join(context_pieces)}')

@@ -41,7 +41,7 @@ def openai_inference(conversation_history: typing.List[typing.Dict[str, str]], u
 
     # assert that the last dialogue was done by the model
     if conversation_history:  # if not new conversation
-        assert conversation_history[-1]['role'] == 'assistant', 'Convesation must end with the assistant writing.'
+        assert conversation_history[-1]['role'].lower() != 'user', 'Convesation must not end with user writing.'
 
     new_conversation_history = conversation_history + [{"role": "user", "content": user_query}]
     completion = client.chat.completions.create(model=deployment, messages=new_conversation_history)
