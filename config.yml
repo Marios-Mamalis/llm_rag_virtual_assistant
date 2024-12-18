@@ -1,10 +1,10 @@
 OPENAI:
+    ENDPOINT: "https://oai-cs-eng.openai.azure.com/"
+    API_VERSION: "2024-02-01"
     LLM:
-        ENDPOINT: "https://oai-cs-eng.openai.azure.com/"
         MODEL_NAME: "gpt-4o"
         MODEL_VERSION: "2024-05-13"
         DEPLOYMENT_NAME: "gpt4o"
-        API_VERSION: "2024-02-01"
     EMBED:
         MODEL_NAME: "text-embedding-ada-002"
         MODEL_VERSION: 2
