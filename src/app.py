@@ -66,8 +66,35 @@ def read_env_variables():
                                 app.openai_embed_deployment)
 
     # Seed it
-    app.rag_store.add_document("Cat kitty.")
-    app.rag_store.add_document("Dog puppy.")
+    # research article
+    app.rag_store.add_document("Recent studies show that global temperatures have risen by approximately 1.2°C since"
+                               " the pre-industrial era, resulting in a decrease in crop yields. In tropical regions,"
+                               " such as Sub-Saharan Africa, maize production has dropped by 20% due to prolonged "
+                               "droughts, while in temperate zones, wheat yields are declining due to increased heat "
+                               "stress during the growing season.")
+    # process to return an item
+    app.rag_store.add_document("To return an item, please ensure it is in its original condition and packaging. You can"
+                               " initiate the return process by logging into your account, selecting the item, and "
+                               "choosing the 'Return' option. Returns must be requested within 30 days of receiving the"
+                               " item, and a return shipping label will be provided.")
+    # legal case
+    app.rag_store.add_document("In the case of XYZ Corporation v. ABC Ltd., the court ruled that the defendant's use of"
+                               " the plaintiff's patented technology without authorization constituted a clear "
+                               "violation of intellectual property rights under section 101 of the Patent Act. The "
+                               "court further emphasized that the defendant's actions caused significant financial "
+                               "harm to the plaintiff, justifying both compensatory damages and injunctive relief.")
+    # medical
+    app.rag_store.add_document("Patient presents with a 5-day history of persistent fever, dry cough, and mild "
+                               "shortness of breath. Past medical history is significant for asthma. On examination, "
+                               "the patient has a temperature of 101°F and slight wheezing. A rapid antigen test for "
+                               "influenza was positive, and a chest X-ray shows mild infiltration in the right lower "
+                               "lobe.")
+    # news
+    app.rag_store.add_document("In a recent announcement, the government unveiled a comprehensive tax reform plan aimed"
+                               " at reducing corporate tax rates and increasing personal tax brackets for higher-income"
+                               " earners. Key political figures, including Senator Jane Doe, have expressed mixed "
+                               "reactions, with some supporting the measure as a boost to economic growth, while others"
+                               " argue it disproportionately benefits the wealthy.")
 
 
 class UserQuery(BaseModel):
@@ -90,5 +117,7 @@ def rag_inference(user_query: UserQuery) -> typing.Dict[str, str]:
         conversation_history=[], user_query=input_text, api_key=app.openai_api_key, api_version=app.openai_api_version,
         endpoint=app.openai_endpoint, deployment=app.openai_llm_deployment
     )
+
+    logger.info(f'Context piece used:\n\n{" ".join(context_pieces)}')
 
     return {'response': assistant_response[-1]['content']}
